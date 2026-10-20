@@ -1,13 +1,755 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>Biggs — Splitcreek</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Deal Analyzer" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Deal Analyzer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Public+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light dark;
+      --page: #eef1ec;
+      --paper: #ffffff;
+      --paper-2: #f5f7f3;
+      --ink: #172019;
+      --muted: #59645b;
+      --faint: #7a847c;
+      --line: #ced6ce;
+      --line-strong: #9fab9f;
+      --forest: #174d36;
+      --forest-2: #0e3927;
+      --mint: #d8eadf;
+      --amber: #b85c17;
+      --amber-bg: #fff0de;
+      --red: #a53d35;
+      --red-bg: #fbe8e5;
+      --green: #17643f;
+      --green-bg: #e0f1e7;
+      --blue: #1c5871;
+      --blue-bg: #e4f0f5;
+      --shadow: 0 18px 46px rgba(32, 49, 38, .10);
+      --radius-lg: 22px;
+      --radius-md: 13px;
+      --radius-sm: 8px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --page: #101512;
+        --paper: #18201b;
+        --paper-2: #202923;
+        --ink: #edf4ee;
+        --muted: #b1beb4;
+        --faint: #8d9b91;
+        --line: #344139;
+        --line-strong: #56675c;
+        --forest: #7bc49e;
+        --forest-2: #a7d7bb;
+        --mint: #203c2c;
+        --amber: #f0a361;
+        --amber-bg: #412b1c;
+        --red: #f29388;
+        --red-bg: #402522;
+        --green: #74d39f;
+        --green-bg: #193728;
+        --blue: #82c9e5;
+        --blue-bg: #19313b;
+        --shadow: 0 18px 46px rgba(0, 0, 0, .25);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background:
+        linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 32px,
+        var(--page);
+      color: var(--ink);
+      font-family: "Public Sans", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    button, input, select { font: inherit; }
+    button, input, select, summary, a { -webkit-tap-highlight-color: transparent; }
+    a { color: var(--forest); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    .wrap { width: min(1220px, calc(100% - 32px)); margin: 0 auto; }
+
+    .hero {
+      padding: 48px 0 28px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(280px, .7fr);
+      gap: 28px;
+      align-items: end;
+    }
+    .hero h1 {
+      margin: 0 0 14px;
+      max-width: 780px;
+      font-size: clamp(2.25rem, 5vw, 4.8rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+      font-weight: 800;
+    }
+    .hero p { margin: 0; max-width: 700px; color: var(--muted); font-size: 1.08rem; }
+    .snapshot {
+      background: var(--forest-2);
+      color: #effbf3;
+      padding: 20px;
+      border-radius: var(--radius-lg) var(--radius-lg) 4px var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+    .snapshot .stamp { font-family: "IBM Plex Mono", monospace; font-size: .75rem; color: #bfe0ca; }
+    .snapshot strong { display: block; font-size: 1.18rem; margin: 7px 0 3px; }
+    .snapshot span { display: block; color: #d4e9db; font-size: .9rem; }
+
+    .tabs {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 6px;
+      padding: 10px;
+      background: color-mix(in srgb, var(--page) 90%, transparent);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      margin-bottom: 26px;
+    }
+    .tabs button {
+      flex: 1;
+      border: 0;
+      padding: 11px 14px;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tabs button[aria-selected="true"] { background: var(--paper); color: var(--ink); box-shadow: 0 2px 8px rgba(20,30,23,.08); }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .section-intro { margin: 0 0 22px; display: flex; justify-content: space-between; gap: 24px; align-items: end; }
+    .section-intro h2 { margin: 0; font-size: clamp(1.6rem, 3vw, 2.35rem); line-height: 1.05; letter-spacing: -.035em; }
+    .section-intro p { margin: 0; max-width: 600px; color: var(--muted); }
+
+    .analyzer-grid { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(330px, .75fr); gap: 22px; align-items: start; }
+    .stack { display: grid; gap: 18px; }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 22px 22px 15px; }
+    .step { display: flex; gap: 13px; align-items: flex-start; }
+    .num {
+      width: 31px; height: 31px; flex: 0 0 31px;
+      display: grid; place-items: center;
+      background: var(--ink); color: var(--paper);
+      border-radius: 50%; font: 600 .78rem "IBM Plex Mono", monospace;
+    }
+    .card-head h3 { margin: 0 0 4px; font-size: 1.18rem; }
+    .card-head p { margin: 0; color: var(--muted); font-size: .88rem; }
+    .card-body { padding: 0 22px 22px; }
+
+    .field-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 12px; }
+    .field, .mini-field { display: grid; gap: 6px; min-width: 0; }
+    label, .label { font-weight: 700; font-size: .78rem; color: var(--muted); }
+    input, select {
+      width: 100%; min-width: 0;
+      padding: 11px 12px;
+      color: var(--ink); background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      outline: none;
+    }
+    input:focus, select:focus { border-color: var(--forest); box-shadow: 0 0 0 3px color-mix(in srgb, var(--forest) 18%, transparent); }
+    .hint { color: var(--faint); font-size: .76rem; }
+
+    .comp-list { display: grid; gap: 10px; }
+    .comp-row {
+      display: grid;
+      grid-template-columns: 38px minmax(110px, 1.15fr) minmax(85px, .8fr) minmax(75px, .65fr) minmax(70px, .6fr) minmax(72px, .55fr) minmax(84px, .7fr);
+      gap: 8px; align-items: end;
+      padding: 12px;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+    }
+    .comp-index { align-self: center; font: 600 .78rem "IBM Plex Mono", monospace; color: var(--faint); }
+    .comp-row input, .comp-row select { background: var(--paper); padding: 9px; }
+    .comp-status { grid-column: 2 / -1; font-size: .76rem; color: var(--muted); min-height: 18px; }
+    .comp-status.warn { color: var(--amber); }
+    .comp-status.good { color: var(--green); }
+    .row-actions { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; align-items: center; }
+    .text-btn {
+      background: transparent; border: 0; color: var(--forest); font-weight: 800; cursor: pointer; padding: 8px 0;
+    }
+    .text-btn:disabled { color: var(--faint); cursor: default; }
+    .quality-pill { font: 600 .72rem "IBM Plex Mono", monospace; padding: 5px 8px; border-radius: 999px; background: var(--paper-2); color: var(--muted); }
+
+    .segmented { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; border: 1px solid var(--line); background: var(--paper-2); border-radius: 10px; margin-bottom: 16px; }
+    .segmented button { border: 0; background: transparent; color: var(--muted); padding: 9px; border-radius: 7px; font-weight: 700; cursor: pointer; }
+    .segmented button.active { background: var(--paper); color: var(--ink); box-shadow: 0 2px 7px rgba(0,0,0,.08); }
+    .repair-mode { display: none; }
+    .repair-mode.active { display: block; }
+    .repair-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .detail-grid .mini-field:nth-last-child(1) { grid-column: span 2; }
+    .contingency-line { display: grid; grid-template-columns: 1fr 100px; gap: 12px; align-items: end; margin-top: 14px; }
+    .range-track { display: flex; justify-content: space-between; margin-top: 4px; font: 500 .7rem "IBM Plex Mono", monospace; color: var(--faint); }
+
+    .sticky-summary { position: sticky; top: 74px; }
+    .result-top { padding: 24px; background: var(--ink); color: var(--paper); }
+    .eyebrow { font: 600 .72rem "IBM Plex Mono", monospace; letter-spacing: .08em; text-transform: uppercase; opacity: .7; }
+    .verdict { margin: 8px 0 4px; font-size: clamp(1.75rem, 3vw, 2.4rem); line-height: 1; font-weight: 800; letter-spacing: -.04em; }
+    .verdict-sub { margin: 0; color: color-mix(in srgb, var(--paper) 76%, transparent); font-size: .9rem; }
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; }
+    .metric { padding: 18px 20px; border-bottom: 1px solid var(--line); }
+    .metric:nth-child(odd) { border-right: 1px solid var(--line); }
+    .metric .label { display: block; margin-bottom: 6px; }
+    .metric strong { font: 600 1.2rem "IBM Plex Mono", monospace; }
+    .math-box { margin: 18px 20px 0; padding: 14px; border-radius: 10px; background: var(--paper-2); font: 500 .78rem/1.65 "IBM Plex Mono", monospace; color: var(--muted); }
+    .decision-note { margin: 14px 20px 20px; padding: 13px; border-radius: 9px; background: var(--blue-bg); color: var(--blue); font-size: .85rem; }
+    .decision-note.good { background: var(--green-bg); color: var(--green); }
+    .decision-note.bad { background: var(--red-bg); color: var(--red); }
+    .confidence { margin: 0 20px 22px; }
+    .confidence-row { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: .8rem; margin-bottom: 7px; }
+    .bar { height: 7px; background: var(--paper-2); border-radius: 99px; overflow: hidden; }
+    .bar span { display: block; height: 100%; width: 0%; background: var(--forest); transition: width .2s ease; }
+
+    .note-strip { margin-top: 18px; padding: 15px 18px; background: var(--amber-bg); color: var(--amber); border-radius: var(--radius-md); font-size: .88rem; }
+
+    .method-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .method {
+      background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); padding: 22px;
+    }
+    .method .tag { display: inline-flex; margin-bottom: 14px; padding: 4px 8px; border-radius: 999px; background: var(--mint); color: var(--forest); font: 600 .7rem "IBM Plex Mono", monospace; }
+    .method h3 { margin: 0 0 8px; font-size: 1.2rem; }
+    .method p { margin: 0 0 14px; color: var(--muted); }
+    .method dl { display: grid; grid-template-columns: 70px 1fr; gap: 8px 12px; margin: 0; font-size: .86rem; }
+    .method dt { font-weight: 800; }
+    .method dd { margin: 0; color: var(--muted); }
+    .rule-card { margin-top: 18px; background: var(--forest-2); color: #f0fbf4; padding: 24px; border-radius: var(--radius-lg); }
+    .rule-card h3 { margin: 0 0 16px; font-size: 1.35rem; }
+    .rule-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .rule { border-top: 1px solid rgba(255,255,255,.25); padding-top: 12px; }
+    .rule strong { display: block; font: 600 1.25rem "IBM Plex Mono", monospace; margin-bottom: 4px; }
+    .rule span { color: #cfe3d6; font-size: .84rem; }
+    .caution-list { margin-top: 18px; padding: 22px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    .caution-list h3 { margin: 0 0 12px; }
+    .caution-list ul { margin: 0; padding-left: 20px; color: var(--muted); display: grid; gap: 8px; }
+
+    .api-lead { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; margin-bottom: 18px; }
+    .recommendation, .reality { padding: 24px; border-radius: var(--radius-lg); }
+    .recommendation { background: var(--forest-2); color: #effbf3; }
+    .reality { background: var(--amber-bg); color: var(--amber); border: 1px solid color-mix(in srgb, var(--amber) 35%, transparent); }
+    .recommendation h3, .reality h3 { margin: 4px 0 8px; }
+    .recommendation p, .reality p { margin: 0; font-size: .92rem; }
+    .api-table { display: grid; gap: 10px; }
+    .api-row { display: grid; grid-template-columns: 1.05fr .85fr .85fr 1.5fr; gap: 16px; padding: 18px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); align-items: start; }
+    .api-row.header { background: transparent; border: 0; padding: 0 18px 4px; color: var(--faint); font: 600 .72rem "IBM Plex Mono", monospace; }
+    .api-row strong { display: block; }
+    .api-row small { color: var(--muted); }
+    .fit { display: inline-flex; padding: 3px 7px; border-radius: 99px; font: 600 .7rem "IBM Plex Mono", monospace; margin-top: 5px; }
+    .fit.good { background: var(--green-bg); color: var(--green); }
+    .fit.maybe { background: var(--amber-bg); color: var(--amber); }
+    .fit.no { background: var(--red-bg); color: var(--red); }
+
+    .source-box { margin: 26px 0 60px; border-top: 1px solid var(--line-strong); padding-top: 18px; }
+    details { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-md); }
+    summary { cursor: pointer; padding: 16px 18px; font-weight: 800; }
+    .sources { padding: 0 18px 18px; color: var(--muted); font-size: .82rem; }
+    .sources p { margin: 0 0 10px; }
+    .sources ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+    .sources a { word-break: break-word; }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 920px) {
+      .hero { grid-template-columns: 1fr; }
+      .analyzer-grid { grid-template-columns: 1fr; }
+      .sticky-summary { position: static; }
+      .field-grid { grid-template-columns: 1fr 1fr; }
+      .comp-row { grid-template-columns: 30px repeat(3, 1fr); }
+      .comp-status { grid-column: 2 / -1; }
+      .rule-grid { grid-template-columns: repeat(2, 1fr); }
+      .api-lead { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .wrap { width: min(100% - 20px, 1220px); }
+      .hero { padding-top: 28px; }
+      .hero h1 { font-size: 2.55rem; }
+      .tabs { border-radius: 11px; padding: 5px; top: 4px; }
+      .tabs button { padding: 9px 6px; font-size: .8rem; }
+      .section-intro { display: block; }
+      .section-intro p { margin-top: 8px; }
+      .card-head, .card-body { padding-left: 15px; padding-right: 15px; }
+      .field-grid, .repair-grid, .detail-grid { grid-template-columns: 1fr 1fr; }
+      .field-grid .field:first-child { grid-column: 1 / -1; }
+      .comp-row { grid-template-columns: 25px 1fr 1fr; gap: 9px; }
+      .comp-row .mini-field:nth-of-type(1) { grid-column: 2 / -1; }
+      .comp-status { grid-column: 2 / -1; }
+      .method-grid, .rule-grid { grid-template-columns: 1fr; }
+      .api-row, .api-row.header { grid-template-columns: 1fr 1fr; gap: 12px; }
+      .api-row.header { display: none; }
+      .api-row > div::before { content: attr(data-label); display: block; margin-bottom: 4px; color: var(--faint); font: 600 .66rem "IBM Plex Mono", monospace; text-transform: uppercase; letter-spacing: .05em; }
+    }
+    @media (max-width: 430px) {
+      .field-grid, .repair-grid, .detail-grid { grid-template-columns: 1fr; }
+      .field-grid .field:first-child, .detail-grid .mini-field:nth-last-child(1) { grid-column: auto; }
+      .comp-row { grid-template-columns: 22px 1fr; }
+      .comp-row .mini-field:nth-of-type(1), .comp-status { grid-column: 2; }
+      .contingency-line { grid-template-columns: 1fr 90px; }
+      .api-row { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric:nth-child(odd) { border-right: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .bar span { transition: none; }
+    }
+  </style>
 </head>
 <body>
-<h1>Biggs</h1>
-<p>Biggs runs the Splitcreek shop: funny shirts for cat people, coffee people, introverts, and professional couch potatoes.</p>
-<p>This site hosts the privacy policy for the Biggs Pinterest app, a personal tool that publishes the owner's own product Pins to the owner's own Pinterest boards.</p>
-<p><a href="privacy-policy.html">Privacy Policy</a></p>
+  <main class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <div>
+        <h1 id="hero-title">Is this property worth contracting?</h1>
+        <p>Work from sold comps, build a repair range, and test the seller’s number against a maximum allowable offer. The calculator uses the most common wholesaler framework while keeping every assumption visible.</p>
+      </div>
+      <aside class="snapshot" aria-label="Research date and scope">
+        <div class="stamp">RESEARCH SNAPSHOT · OCT 5, 2026</div>
+        <strong>3–5 sold comps + scoped repairs + buyer margin</strong>
+        <span>Educational underwriting aid. Verify comps, contractor costs, title, and local wholesaling rules before contracting.</span>
+      </aside>
+    </section>
+
+    <nav class="tabs" aria-label="Page sections">
+      <button type="button" data-tab="analyze" aria-selected="true">Analyze a deal</button>
+      <button type="button" data-tab="methods" aria-selected="false">Methods</button>
+      <button type="button" data-tab="automation" aria-selected="false">Automation</button>
+    </nav>
+
+    <section id="analyze" class="panel active" aria-labelledby="analyze-title">
+      <div class="section-intro">
+        <div><h2 id="analyze-title">Build the offer from the evidence</h2></div>
+        <p>The address labels your analysis; this version does not fetch property data. Enter sold comps and observed repairs, then test the asking price.</p>
+      </div>
+
+      <div class="analyzer-grid">
+        <div class="stack">
+          <section class="card" aria-labelledby="subject-title">
+            <div class="card-head">
+              <div class="step"><span class="num">01</span><div><h3 id="subject-title">Subject property</h3><p>Basic facts and the seller’s number.</p></div></div>
+            </div>
+            <div class="card-body field-grid">
+              <div class="field"><label for="address">Address</label><input id="address" type="text" placeholder="123 Main St, Fayetteville, NC" autocomplete="street-address" /></div>
+              <div class="field"><label for="subjectSqft">Living area</label><input id="subjectSqft" type="number" min="1" step="1" inputmode="numeric" placeholder="1,500" /><span class="hint">sq ft</span></div>
+              <div class="field"><label for="beds">Beds</label><input id="beds" type="number" min="0" step="1" inputmode="numeric" placeholder="3" /></div>
+              <div class="field"><label for="baths">Baths</label><input id="baths" type="number" min="0" step="0.5" inputmode="decimal" placeholder="2" /></div>
+              <div class="field"><label for="asking">Seller asking / target</label><input id="asking" type="number" min="0" step="100" inputmode="decimal" placeholder="$110,000" /></div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="comps-title">
+            <div class="card-head">
+              <div class="step"><span class="num">02</span><div><h3 id="comps-title">Sold comparables</h3><p>Use adjusted sale price after accounting for bed/bath, condition, parking, lot, and features.</p></div></div>
+              <span id="compQuality" class="quality-pill">0 usable</span>
+            </div>
+            <div class="card-body">
+              <div id="compList" class="comp-list"></div>
+              <div class="row-actions">
+                <button id="addComp" class="text-btn" type="button">+ Add comp</button>
+                <span class="hint">Target 3–5. Weight your best evidence higher.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="repairs-title">
+            <div class="card-head">
+              <div class="step"><span class="num">03</span><div><h3 id="repairs-title">Repair scope</h3><p>Quick screen first; line items before a final offer.</p></div></div>
+            </div>
+            <div class="card-body">
+              <div class="segmented" aria-label="Repair estimate method">
+                <button type="button" data-repair="quick" class="active">$/sq ft screen</button>
+                <button type="button" data-repair="detailed">Line-item estimate</button>
+              </div>
+
+              <div id="quickMode" class="repair-mode active">
+                <div class="repair-grid">
+                  <div class="field"><label for="rehabLevel">Rehab level</label><select id="rehabLevel"><option value="light">Light · $15–25/sf</option><option value="medium">Medium · $25–45/sf</option><option value="heavy">Heavy · $45–75/sf</option></select></div>
+                  <div class="field"><label for="rate">Chosen rate</label><input id="rate" type="number" min="0" step="1" value="20" inputmode="decimal" /><span class="hint">$ per sq ft</span></div>
+                  <div class="field"><label for="bigFive">Known major-system costs</label><input id="bigFive" type="number" min="0" step="500" value="0" inputmode="decimal" /><span class="hint">Only costs not in the base rate</span></div>
+                </div>
+                <div class="note-strip"><strong>Big 5 first:</strong> roof, HVAC, plumbing, electrical, foundation. The researched guidance warns these can change the math completely; do not guess on a failed system.</div>
+              </div>
+
+              <div id="detailedMode" class="repair-mode">
+                <div class="detail-grid">
+                  <div class="mini-field"><label for="roof">Roof</label><input id="roof" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="hvac">HVAC</label><input id="hvac" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="plumbing">Plumbing / sewer</label><input id="plumbing" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="electrical">Electrical</label><input id="electrical" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="foundation">Foundation</label><input id="foundation" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="kitchen">Kitchen</label><input id="kitchen" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="bathrooms">Bathrooms</label><input id="bathrooms" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="windows">Windows</label><input id="windows" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="finishes">Flooring, paint & finishes</label><input id="finishes" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                  <div class="mini-field"><label for="other">Demo, permits, exterior & other</label><input id="other" class="repair-item" type="number" min="0" step="500" value="0" /></div>
+                </div>
+              </div>
+
+              <div class="contingency-line">
+                <div class="field"><label for="contingency">Contingency</label><input id="contingency" type="range" min="10" max="20" value="15" step="1" /><div class="range-track"><span>10% newer</span><span>15–20% older / uncertain</span></div></div>
+                <div class="field"><label for="contingencyText">Rate</label><input id="contingencyText" type="number" min="0" max="50" step="1" value="15" /></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="deal-title">
+            <div class="card-head">
+              <div class="step"><span class="num">04</span><div><h3 id="deal-title">Deal rule</h3><p>Choose the multiplier deliberately—70% is a screen, not a law.</p></div></div>
+            </div>
+            <div class="card-body repair-grid">
+              <div class="field"><label for="multiplier">ARV multiplier</label><select id="multiplier"><option value="0.60">60% · low price / fixed-cost risk</option><option value="0.65">65% · rough or conservative</option><option value="0.70" selected>70% · standard screen</option><option value="0.75">75% · strong market</option><option value="0.80">80% · hot / light rehab</option><option value="0.85">85% · exceptional / minimal rehab</option></select></div>
+              <div class="field"><label for="fee">Assignment fee target</label><input id="fee" type="number" min="0" step="500" value="10000" inputmode="decimal" /><span class="hint">Research range: $5k–$15k typical</span></div>
+              <div class="field"><label for="arvOverride">ARV override</label><input id="arvOverride" type="number" min="0" step="1000" placeholder="Use comp result" inputmode="decimal" /><span class="hint">Leave blank to use weighted comps</span></div>
+            </div>
+          </section>
+        </div>
+
+        <aside class="sticky-summary">
+          <section class="card" aria-live="polite">
+            <div class="result-top">
+              <div class="eyebrow">Current decision</div>
+              <div id="verdict" class="verdict">Add the evidence</div>
+              <p id="verdictSub" class="verdict-sub">Start with subject size and at least three sold comps.</p>
+            </div>
+            <div class="metrics">
+              <div class="metric"><span class="label">Weighted ARV</span><strong id="arvOut">—</strong></div>
+              <div class="metric"><span class="label">Repairs + contingency</span><strong id="repairsOut">—</strong></div>
+              <div class="metric"><span class="label">Maximum allowable offer</span><strong id="maoOut">—</strong></div>
+              <div class="metric"><span class="label">Room vs asking</span><strong id="roomOut">—</strong></div>
+            </div>
+            <div id="mathBox" class="math-box">ARV × 70% − repairs − fee = MAO</div>
+            <div id="decisionNote" class="decision-note">A green answer still needs a walkthrough, title review, buyer validation, and local legal compliance.</div>
+            <div class="confidence">
+              <div class="confidence-row"><span>Evidence quality</span><strong id="confidenceLabel">Not ready</strong></div>
+              <div class="bar"><span id="confidenceBar"></span></div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <section id="methods" class="panel" aria-labelledby="methods-title">
+      <div class="section-intro">
+        <div><h2 id="methods-title">How experienced operators estimate</h2></div>
+        <p>No single shortcut owns the whole decision. Fast operators screen with broad rates, isolate the expensive systems, then replace guesses with a scope of work.</p>
+      </div>
+
+      <div class="method-grid">
+        <article class="method"><span class="tag">FASTEST · LEAD SCREEN</span><h3>Price per square foot</h3><p>Multiply subject living area by a local rehab rate: light $15–25/sf, medium $25–45/sf, heavy $45–75/sf in the cited 2026 wholesaler guide.</p><dl><dt>Best for</dt><dd>Under-a-minute triage.</dd><dt>Strength</dt><dd>Consistent and fast.</dd><dt>Weakness</dt><dd>Wet rooms and failed systems can overwhelm the average.</dd></dl></article>
+        <article class="method"><span class="tag">FIRST 5 MINUTES</span><h3>“Big 5” system check</h3><p>Price roof, HVAC, plumbing, electrical, and foundation before finishes. The label is generic industry practice, not credited to one educator.</p><dl><dt>Best for</dt><dd>Fast go / no-go walkthrough.</dd><dt>Strength</dt><dd>Catches budget killers early.</dd><dt>Weakness</dt><dd>Does not capture the full cosmetic scope.</dd></dl></article>
+        <article class="method"><span class="tag">FINAL-OFFER DETAIL</span><h3>Room-by-room line items</h3><p>Walk every room and price floors, walls, ceilings, cabinets, counters, fixtures, and windows. Kitchens and baths alone can require 15–20 line items.</p><dl><dt>Best for</dt><dd>A property you may actually contract.</dd><dt>Strength</dt><dd>Defensible scope for buyers.</dd><dt>Weakness</dt><dd>Slow and dependent on local unit costs.</dd></dl></article>
+        <article class="method"><span class="tag">SYSTEMATIC FRAMEWORK</span><h3>J Scott’s scope of work</h3><p>Define the SOW, break it into 25 renovation components, and price 150+ common tasks using a local price book. Refresh inputs as labor and materials move.</p><dl><dt>Best for</dt><dd>Repeatable investor underwriting.</dd><dt>Strength</dt><dd>Auditable and teachable.</dd><dt>Weakness</dt><dd>Upfront work; book figures are not current local prices.</dd></dl></article>
+      </div>
+
+      <section class="rule-card">
+        <h3>Appraiser-style comp discipline</h3>
+        <div class="rule-grid">
+          <div class="rule"><strong>3–5</strong><span>closed, renovated comps; quality over quantity</span></div>
+          <div class="rule"><strong>≤ 0.5 mi</strong><span>same neighborhood; never cross a material boundary</span></div>
+          <div class="rule"><strong>≤ 90 days</strong><span>preferred; up to six months, farther only with thoughtful adjustment</span></div>
+          <div class="rule"><strong>≤ 10%</strong><span>gross living area variance; another cited guide uses ±200 sf</span></div>
+          <div class="rule"><strong>Match</strong><span>beds, baths, style, build era, parking, lot, and target condition</span></div>
+          <div class="rule"><strong>Weight</strong><span>the closest, most recent, most comparable evidence higher</span></div>
+        </div>
+      </section>
+
+      <section class="caution-list">
+        <h3>Where beginners lose the deal</h3>
+        <ul>
+          <li>Cherry-picking the highest sale instead of the best comp.</li>
+          <li>Using $/sq ft as the offer basis instead of a screening estimate.</li>
+          <li>Comparing a planned renovation to dated or fixer-upper sales.</li>
+          <li>Skipping a 10–20% repair contingency or hiding it inside hoped-for profit.</li>
+          <li>Trusting an automated valuation without driving the comps and checking the block.</li>
+          <li>Forgetting that the end buyer still needs a real margin after financing, holding, closing, and resale costs.</li>
+        </ul>
+      </section>
+    </section>
+
+    <section id="automation" class="panel" aria-labelledby="automation-title">
+      <div class="section-intro">
+        <div><h2 id="automation-title">What makes address lookup automatic</h2></div>
+        <p>A durable address-to-decision product needs a backend and licensed property-data API. Zillow, Redfin, and Realtor.com do not provide a stable public sold-comps API for this workflow.</p>
+      </div>
+
+      <div class="api-lead">
+        <article class="recommendation"><div class="eyebrow">BEST VERIFIED SMALL-TOOL FIT</div><h3>RentCast Foundation · $74/month</h3><p>1,000 included requests, property records, valuation data, and sales/rental comps. The free developer tier has 50 calls per month—useful for testing, not dozens of lookups per day.</p></article>
+        <article class="reality"><div class="eyebrow">THIS STATIC VERSION</div><h3>Manual comps, transparent math</h3><p>The calculator above works now with inputs you supply. It does not fetch at page open, store your deals, or claim that an address alone proves value.</p></article>
+      </div>
+
+      <div class="api-table" role="table" aria-label="Property data API comparison">
+        <div class="api-row header" role="row"><div>Provider</div><div>Sold comps</div><div>Pricing</div><div>Fit for one user</div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>RentCast</strong><small>150M+ U.S. property records</small></div><div data-label="Sold comps"><strong>Yes</strong><small>Sales and rental comps</small></div><div data-label="Pricing"><strong>Free / $74+</strong><small>50 / 1,000 calls monthly</small></div><div data-label="Fit"><span class="fit good">BEST FIT</span><small>Verified pricing; no contract reported.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>HouseCanary</strong><small>Valuation and condition analysis</small></div><div data-label="Sold comps"><strong>Yes</strong><small>Via value analysis</small></div><div data-label="Pricing"><strong>$19+</strong><small>Published in a 2026 roundup</small></div><div data-label="Fit"><span class="fit good">GOOD</span><small>Cheap, valuation-focused alternative; verify exact API access by tier.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>RealEstateAPI.com</strong><small>157M+ properties, 200+ fields</small></div><div data-label="Sold comps"><strong>Yes</strong><small>Purpose-built PropertyComps endpoint</small></div><div data-label="Pricing"><strong>Not public</strong><small>Free version/trial reported</small></div><div data-label="Fit"><span class="fit maybe">EVALUATE</span><small>Strong API design; paid pricing and quotas remain open.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>ATTOM</strong><small>160M+ properties, enterprise depth</small></div><div data-label="Sold comps"><strong>Yes</strong><small>Transaction history</small></div><div data-label="Pricing"><strong>Quote-based</strong><small>One Mar 2026 quote: $600 / 5k calls</small></div><div data-label="Fit"><span class="fit no">TOO HEAVY</span><small>Annual-contract, enterprise-oriented structure.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>BatchData</strong><small>240+ core property points</small></div><div data-label="Sold comps"><strong>Yes</strong><small>Comparables add-on</small></div><div data-label="Pricing"><strong>$1,000+</strong><small>Comps custom / enterprise</small></div><div data-label="Fit"><span class="fit no">POOR FIT</span><small>High floor for a single-user tool.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>PropStream</strong><small>Useful comping SaaS</small></div><div data-label="Sold comps"><strong>In product</strong><small>No public developer API found</small></div><div data-label="Pricing"><strong>~$99+</strong><small>SaaS, not an API</small></div><div data-label="Fit"><span class="fit no">CAN’T POWER APP</span><small>Could remain a separate research tool.</small></div></div>
+        <div class="api-row" role="row"><div data-label="Provider"><strong>Estated / RealtyMole</strong><small>Legacy / uncertain availability</small></div><div data-label="Sold comps"><strong>Not reliable now</strong><small>Estated acquired; RealtyMole listing missing</small></div><div data-label="Pricing"><strong>Unclear</strong><small>Do not rely on old listicles</small></div><div data-label="Fit"><span class="fit no">REMOVE</span><small>Estated is gone; RealtyMole needs direct confirmation.</small></div></div>
+      </div>
+    </section>
+
+    <section class="source-box" aria-label="Research sources">
+      <details>
+        <summary>Research basis and source links</summary>
+        <div class="sources">
+          <p>Research completed October 5, 2026. Live-verified pricing is identified above; other method and cost references came from indexed source material and should be calibrated to the local market.</p>
+          <ul>
+            <li><a href="https://honestcasa.com/blog/wholesaling-real-estate-guide" target="_blank" rel="noopener noreferrer">HonestCasa — 2026 wholesaling guide, repair tiers, MAO and fee ranges</a></li>
+            <li><a href="https://www.realestateskills.com/blog/arv-calculator/?el=htwafhw0" target="_blank" rel="noopener noreferrer">Real Estate Skills — appraiser-style ARV workflow</a></li>
+            <li><a href="https://solohouseflipper.com/files/ARV-Framework.pdf" target="_blank" rel="noopener noreferrer">Solo House Flipper — detailed ARV framework</a></li>
+            <li><a href="https://crushingrei.com/understanding-arv-in-real-estate-wholesaling/" target="_blank" rel="noopener noreferrer">Crushing REI — comps, thin markets, and 70% rule variations</a></li>
+            <li><a href="https://www.amazon.com/dp/1947200127" target="_blank" rel="noopener noreferrer">J Scott — The Book on Estimating Rehab Costs</a></li>
+            <li><a href="https://mdoaxpynuttnfshovctq.supabase.co/storage/v1/object/public/resources/kits/estimate-repair-costs-action-kit.pdf" target="_blank" rel="noopener noreferrer">Wholesale REI — repair-cost action kit</a></li>
+            <li><a href="https://www.rentcast.io/api" target="_blank" rel="noopener noreferrer">RentCast API — data coverage and live-verified pricing</a></li>
+            <li><a href="https://batchdata.io/pricing" target="_blank" rel="noopener noreferrer">BatchData — live-verified plan pricing</a></li>
+            <li><a href="https://github.com/realestateapi/docs" target="_blank" rel="noopener noreferrer">RealEstateAPI.com — property and comps API documentation</a></li>
+            <li><a href="https://www.housecanary.com/blog/real-estate-data-api-for-developers" target="_blank" rel="noopener noreferrer">HouseCanary — developer data overview</a></li>
+            <li><a href="https://estated.com" target="_blank" rel="noopener noreferrer">Estated — ATTOM acquisition notice</a></li>
+          </ul>
+        </div>
+      </details>
+    </section>
+  </main>
+
+  <template id="compTemplate">
+    <div class="comp-row">
+      <div class="comp-index">C1</div>
+      <div class="mini-field"><label>Adjusted sale price</label><input class="comp-price" type="number" min="0" step="1000" inputmode="decimal" placeholder="$225,000" /></div>
+      <div class="mini-field"><label>Sq ft</label><input class="comp-sqft" type="number" min="1" step="1" inputmode="numeric" placeholder="1,480" /></div>
+      <div class="mini-field"><label>Miles</label><input class="comp-distance" type="number" min="0" step="0.1" inputmode="decimal" placeholder="0.3" /></div>
+      <div class="mini-field"><label>Days ago</label><input class="comp-days" type="number" min="0" step="1" inputmode="numeric" placeholder="45" /></div>
+      <div class="mini-field"><label>Weight</label><select class="comp-weight"><option value="1">1 · fair</option><option value="2" selected>2 · strong</option><option value="3">3 · best</option></select></div>
+      <div class="mini-field"><label>Condition</label><select class="comp-condition"><option value="renovated" selected>Renovated</option><option value="dated">Dated / fixer</option></select></div>
+      <div class="comp-status">Enter the sold-comp facts.</div>
+    </div>
+  </template>
+
+  <script>
+    (function () {
+      'use strict';
+
+      var state = { repairMode: 'quick' };
+      var money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+      var compactMoney = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 });
+      var compList = document.getElementById('compList');
+      var template = document.getElementById('compTemplate');
+
+      function number(id) {
+        var value = parseFloat(document.getElementById(id).value);
+        return Number.isFinite(value) ? value : 0;
+      }
+
+      function setText(id, text) { document.getElementById(id).textContent = text; }
+
+      function addComp() {
+        if (compList.children.length >= 5) return;
+        var node = template.content.cloneNode(true);
+        compList.appendChild(node);
+        renumberComps();
+        bindInputs();
+        calculate();
+      }
+
+      function renumberComps() {
+        Array.prototype.forEach.call(compList.children, function (row, index) {
+          var name = 'Comp ' + (index + 1) + ' ';
+          row.querySelector('.comp-index').textContent = 'C' + (index + 1);
+          row.querySelector('.comp-price').setAttribute('aria-label', name + 'adjusted sale price');
+          row.querySelector('.comp-sqft').setAttribute('aria-label', name + 'square feet');
+          row.querySelector('.comp-distance').setAttribute('aria-label', name + 'distance in miles');
+          row.querySelector('.comp-days').setAttribute('aria-label', name + 'days since sale');
+          row.querySelector('.comp-weight').setAttribute('aria-label', name + 'evidence weight');
+          row.querySelector('.comp-condition').setAttribute('aria-label', name + 'condition');
+        });
+        document.getElementById('addComp').disabled = compList.children.length >= 5;
+      }
+
+      function bindInputs() {
+        document.querySelectorAll('input, select').forEach(function (el) {
+          if (!el.dataset.bound) {
+            el.addEventListener('input', calculate);
+            el.addEventListener('change', calculate);
+            el.dataset.bound = 'true';
+          }
+        });
+      }
+
+      function compAnalysis() {
+        var subjectSqft = number('subjectSqft');
+        var total = 0;
+        var weights = 0;
+        var usable = 0;
+        var strict = 0;
+        var entered = 0;
+
+        Array.prototype.forEach.call(compList.children, function (row) {
+          var price = parseFloat(row.querySelector('.comp-price').value) || 0;
+          var sqft = parseFloat(row.querySelector('.comp-sqft').value) || 0;
+          var distance = parseFloat(row.querySelector('.comp-distance').value);
+          var days = parseFloat(row.querySelector('.comp-days').value);
+          var weight = parseFloat(row.querySelector('.comp-weight').value) || 1;
+          var condition = row.querySelector('.comp-condition').value;
+          var status = row.querySelector('.comp-status');
+          var issues = [];
+
+          if (price > 0) entered++;
+          if (Number.isFinite(distance) && distance > .5) issues.push('outside 0.5 mi');
+          if (Number.isFinite(days) && days > 90) issues.push(days > 180 ? 'older than 6 months' : 'older than 90 days');
+          if (subjectSqft > 0 && sqft > 0 && Math.abs(sqft - subjectSqft) / subjectSqft > .10) issues.push('size variance over 10%');
+          if (condition !== 'renovated') issues.push('not renovated condition');
+
+          if (price > 0) {
+            total += price * weight;
+            weights += weight;
+            usable++;
+            if (issues.length === 0 && sqft > 0 && Number.isFinite(distance) && Number.isFinite(days)) strict++;
+          }
+
+          if (!price) {
+            status.textContent = 'Enter the sold-comp facts.';
+            status.className = 'comp-status';
+          } else if (issues.length) {
+            status.textContent = 'Review: ' + issues.join(' · ');
+            status.className = 'comp-status warn';
+          } else {
+            status.textContent = 'Inside the preferred comp guardrails.';
+            status.className = 'comp-status good';
+          }
+        });
+        return { arv: weights ? total / weights : 0, usable: usable, strict: strict, entered: entered };
+      }
+
+      function repairAnalysis() {
+        var subtotal = 0;
+        if (state.repairMode === 'quick') {
+          subtotal = number('subjectSqft') * number('rate') + number('bigFive');
+        } else {
+          document.querySelectorAll('.repair-item').forEach(function (el) { subtotal += parseFloat(el.value) || 0; });
+        }
+        var contingency = number('contingencyText') / 100;
+        return { subtotal: subtotal, contingency: subtotal * contingency, total: subtotal * (1 + contingency) };
+      }
+
+      function calculate() {
+        var comp = compAnalysis();
+        var repair = repairAnalysis();
+        var override = number('arvOverride');
+        var arv = override || comp.arv;
+        var multiple = number('multiplier');
+        var fee = number('fee');
+        var asking = number('asking');
+        var mao = arv > 0 ? (arv * multiple) - repair.total - fee : 0;
+        var room = asking > 0 && mao ? mao - asking : 0;
+
+        setText('compQuality', comp.usable + ' usable · ' + comp.strict + ' preferred');
+        setText('arvOut', arv ? money.format(arv) : '—');
+        setText('repairsOut', repair.total ? money.format(repair.total) : '$0');
+        setText('maoOut', mao ? money.format(mao) : '—');
+        setText('roomOut', asking && mao ? (room >= 0 ? '+' : '−') + money.format(Math.abs(room)) : '—');
+        setText('mathBox', (arv ? compactMoney.format(arv) : 'ARV') + ' × ' + Math.round(multiple * 100) + '% − ' + money.format(repair.total) + ' repairs − ' + money.format(fee) + ' fee = ' + (mao ? money.format(mao) : 'MAO'));
+
+        var confidenceScore = 0;
+        if (number('subjectSqft') > 0) confidenceScore += 15;
+        confidenceScore += Math.min(comp.usable, 3) * 10;
+        confidenceScore += Math.min(comp.strict, 3) * 10;
+        if (repair.total > 0) confidenceScore += 15;
+        if (state.repairMode === 'detailed' && repair.subtotal > 0) confidenceScore += 10;
+        confidenceScore = Math.min(confidenceScore, 100);
+        document.getElementById('confidenceBar').style.width = confidenceScore + '%';
+        setText('confidenceLabel', confidenceScore >= 80 ? 'Strong screen' : confidenceScore >= 55 ? 'Developing' : confidenceScore > 0 ? 'Thin evidence' : 'Not ready');
+
+        var verdict = document.getElementById('verdict');
+        var sub = document.getElementById('verdictSub');
+        var note = document.getElementById('decisionNote');
+        note.className = 'decision-note';
+
+        if (!arv || comp.usable < 3 && !override) {
+          verdict.textContent = 'Add the evidence';
+          sub.textContent = override ? 'Now complete the repair scope and seller number.' : 'Use at least three sold comps, or enter a verified ARV override.';
+          note.textContent = 'Do not let a single sale, listing price, or automated valuation carry the decision.';
+        } else if (!asking) {
+          verdict.textContent = 'MAO calculated';
+          sub.textContent = 'Enter the seller’s asking or target price to test the deal.';
+          note.textContent = 'The MAO is a screening ceiling, not a substitute for contractor, title, financing, disposition, or legal review.';
+        } else if (asking <= mao) {
+          verdict.textContent = 'Inside your MAO';
+          sub.textContent = 'The seller number is ' + money.format(room) + ' below the calculated ceiling.';
+          note.className = 'decision-note good';
+          note.textContent = confidenceScore >= 80 ? 'Promising on the entered assumptions. Verify the repair scope, comp condition, title, buyer demand, and all transaction costs.' : 'Promising math, but the evidence is still thin. Strengthen the comps and repair scope before contracting.';
+        } else {
+          verdict.textContent = 'Outside your MAO';
+          sub.textContent = 'The seller number is ' + money.format(Math.abs(room)) + ' above the calculated ceiling.';
+          note.className = 'decision-note bad';
+          note.textContent = 'Renegotiate, improve the evidence, or pass. Do not inflate ARV or suppress repairs to force a deal.';
+        }
+      }
+
+      document.querySelectorAll('.tabs button').forEach(function (button) {
+        button.addEventListener('click', function () {
+          document.querySelectorAll('.tabs button').forEach(function (b) { b.setAttribute('aria-selected', 'false'); });
+          document.querySelectorAll('.panel').forEach(function (panel) { panel.classList.remove('active'); });
+          button.setAttribute('aria-selected', 'true');
+          document.getElementById(button.dataset.tab).classList.add('active');
+          window.scrollTo({ top: document.querySelector('.tabs').offsetTop - 4, behavior: 'smooth' });
+        });
+      });
+
+      document.querySelectorAll('[data-repair]').forEach(function (button) {
+        button.addEventListener('click', function () {
+          state.repairMode = button.dataset.repair;
+          document.querySelectorAll('[data-repair]').forEach(function (b) { b.classList.toggle('active', b === button); });
+          document.getElementById('quickMode').classList.toggle('active', state.repairMode === 'quick');
+          document.getElementById('detailedMode').classList.toggle('active', state.repairMode === 'detailed');
+          calculate();
+        });
+      });
+
+      document.getElementById('rehabLevel').addEventListener('change', function () {
+        var rates = { light: 20, medium: 35, heavy: 60 };
+        document.getElementById('rate').value = rates[this.value];
+        calculate();
+      });
+      document.getElementById('contingency').addEventListener('input', function () {
+        document.getElementById('contingencyText').value = this.value;
+        calculate();
+      });
+      document.getElementById('contingencyText').addEventListener('input', function () {
+        document.getElementById('contingency').value = Math.max(10, Math.min(20, parseFloat(this.value) || 10));
+        calculate();
+      });
+      document.getElementById('addComp').addEventListener('click', addComp);
+
+      addComp(); addComp(); addComp();
+      bindInputs();
+      calculate();
+    }());
+  </script>
 </body>
 </html>
